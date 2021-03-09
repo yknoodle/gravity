@@ -13,7 +13,7 @@
     <artifactId>gravity</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>gravity</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Project with lib to do simple physics simulations</description>
     <modules>
         <module>simulation</module>
         <module>gravity-app</module>

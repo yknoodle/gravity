@@ -2,8 +2,8 @@ package com.noodle.gravity
 
 import com.noodle.physics.BarnesHutEntity
 import com.noodle.physics.BarnesHutEntityFactory
-import com.noodle.physics.Earth
-import com.noodle.physics.Moon
+import com.noodle.physics.gravitation.Earth
+import com.noodle.physics.gravitation.Moon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking

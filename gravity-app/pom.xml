@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <name>gravity-app</name>
-    <description>Demo project for Spring Boot</description>
+    <description>API interface to web for input and outputs of physics simulations</description>
     <properties>
         <java.version>15</java.version>
         <kotlin.version>1.4.21</kotlin.version>

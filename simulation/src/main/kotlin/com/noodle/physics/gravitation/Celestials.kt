@@ -1,6 +1,4 @@
-package com.noodle.physics
-
-import com.noodle.physics.gravitation.ICelestial
+package com.noodle.physics.gravitation
 
 object Moon: ICelestial {
     override fun mass(): Double = 7.34767309e22
