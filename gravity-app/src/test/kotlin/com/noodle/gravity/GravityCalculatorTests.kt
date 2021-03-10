@@ -1,11 +1,14 @@
 package com.noodle.gravity
 
-import com.noodle.physics.BarnesHutEntity
+import com.noodle.math.IterableOperations.magnitude
+import com.noodle.physics.PointMassEntity
 import com.noodle.physics.BarnesHutEntityFactory
+import com.noodle.physics.IPointMassEntity
 import com.noodle.physics.gravitation.Earth
 import com.noodle.physics.gravitation.Moon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
@@ -15,19 +18,19 @@ class GravityCalculatorTests {
     @FlowPreview
     @Test
     fun canCalculate() = runBlocking {
-        val barnesHutObjects: List<BarnesHutEntity> =
+        val entities: List<PointMassEntity> =
                 listOf(
-                        BarnesHutEntity(100.0, 0.0, 0.0, 0.0),
-                        BarnesHutEntity(100.0, 1.0, 1.0, 1.0)
+                        PointMassEntity(100.0, 0.0, 0.0, 0.0),
+                        PointMassEntity(100.0, 1.0, 1.0, 1.0)
                 )
-        GravityCalculator.compute(barnesHutObjects)
+        BarnesHutGravityCalculator.compute(entities)
                 .collect { println("$it") }
     }
     @FlowPreview
     @Test
     fun calculateEarthMoon() = runBlocking {
         val earthCenter: Double = 400000.0
-        val entities: List<BarnesHutEntity> = listOf(
+        val entities: List<IPointMassEntity> = listOf(
                 BarnesHutEntityFactory.builder()
                         .from(Earth)
                         .states(listOf(earthCenter, 0.0, 0.0)).build(),
@@ -36,9 +39,12 @@ class GravityCalculatorTests {
                         .states(listOf(earthCenter+384400.0, 0.0, 0.0)).build(),
                 BarnesHutEntityFactory.builder()
                         .from(Moon)
+                        .id("Moon2")
                         .states(listOf(earthCenter-384400.0, 0.0, 0.0)).build()
         )
-        GravityCalculator.compute(entities).collect { println(it) }
+        BarnesHutGravityCalculator.compute(entities)
+                .onEach { println(it) }
+
     }
     @FlowPreview
     @Test
@@ -46,8 +52,8 @@ class GravityCalculatorTests {
         val inserts = 200
         val maxMass: Long = 10e25.toLong()
         val maxRange: Long = 10e11.toLong()
-        val barnesHutObjects: List<BarnesHutEntity> = (0 until inserts).map{
-            BarnesHutEntity(
+        val entities: List<PointMassEntity> = (0 until inserts).map{
+            PointMassEntity(
                     (0 until maxMass).random(Random(it)).toDouble(),
                     (0 until maxRange).random(Random(it+1))/1000.0,
                     (0 until maxRange).random(Random(it+2))/1000.0,
@@ -56,7 +62,7 @@ class GravityCalculatorTests {
             )
         }
         println("started on $inserts inserts")
-        GravityCalculator.compute(barnesHutObjects)
+        BarnesHutGravityCalculator.compute(entities)
                 .collect { println("$it") }
         println("started on $inserts inserts")
     }

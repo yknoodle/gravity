@@ -6,24 +6,18 @@ import java.util.*
 class BarnesHutEntityFactory(
         private var _mass: Double = 0.0,
         private var _id: String = UUID.randomUUID().toString(),
-        private var _states: List<Double> = listOf(0.0, 0.0, 0.0)
-) {
+        private var _states: Array<Double> = arrayOf(0.0, 0.0, 0.0)
+): IBarnesHutEntityFactory {
     fun from(celestial: ICelestial): BarnesHutEntityFactory = this.apply {
         _mass = celestial.mass()
         _id = celestial.name()
     }
-    fun states(states: List<Double>) = this.apply{ _states = states }
-    fun id(id: String) = this.apply{ _id = id }
-    fun build(): BarnesHutEntity = BarnesHutEntity(
+    override fun states(states: List<Double>) = this.apply{ _states = states.toTypedArray() }
+    override fun id(id: String) = this.apply{ _id = id }
+    override fun build(): IPointMassEntity = PointMassEntity(
             _mass,
             *_states.toDoubleArray(),
             _id=_id)
-    fun from(celestial: ICelestial, vararg states: Double, id: String?=null): IBarnesHutEntity =
-            BarnesHutEntity(
-                    celestial.mass(),
-                    *states,
-                    _id = id?:celestial.name()
-            )
     companion object {
         fun builder(): BarnesHutEntityFactory = BarnesHutEntityFactory()
     }

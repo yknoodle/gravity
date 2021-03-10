@@ -1,8 +1,8 @@
 package com.noodle.physics.gravitation
 
 object Moon: ICelestial {
-    override fun mass(): Double = 7.34767309e22
     override fun name(): String = "Moon"
+    override fun mass(): Double = 7.34767309e22
 }
 
 object Earth: ICelestial {

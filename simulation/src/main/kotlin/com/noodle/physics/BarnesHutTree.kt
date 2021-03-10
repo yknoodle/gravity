@@ -2,42 +2,39 @@ package com.noodle.physics
 
 import com.noodle.bounding.CubeSpace
 import com.noodle.bounding.IBoundary
-import com.noodle.datastructure.ISpaceTree
+import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.math.ArrayOperations.magnitude
 
-open class BarnesHutTree(
+class BarnesHutTree(
         private val _interaction: IMassInteraction,
         private val _boundary: IBoundary<Double, Long> = CubeSpace(50L),
         private val _capacity: Int = 1,
-        private val _states: MutableList<IBarnesHutEntity> = mutableListOf(),
-        private val _nodes: MutableList<ISpaceTree<IBarnesHutEntity>> = mutableListOf()
-) : ISpaceTree<IBarnesHutEntity> {
-    override fun insert(state: IBarnesHutEntity): ISpaceTree<IBarnesHutEntity>? {
-        if (_states.size < _capacity && state.states() in _boundary && _nodes.isEmpty()) {
+        private val _states: MutableList<IPointMassEntity> = mutableListOf(),
+        private val _nodes: MutableList<IBarnesHutTree<IPointMassEntity>> = mutableListOf()
+) : IBarnesHutTree<IPointMassEntity> {
+    override fun insert(state: IPointMassEntity): IBarnesHutTree<IPointMassEntity>? {
+        if (_states.size < _capacity && state.position() in _boundary && _nodes.isEmpty()) {
             _states.add(state)
             return this
         }
-        if (state.states() in _boundary && _nodes.isNotEmpty())
+        if (state.position() in _boundary && _nodes.isNotEmpty())
             for (node in _nodes) if (node.insert(state) != null) return this
-        if (_states.size >= _capacity && state.states() in _boundary && split().isNotEmpty()) {
+        if (_states.size >= _capacity && state.position() in _boundary && split().isNotEmpty()) {
             while (_states.isNotEmpty()) {
-                val popped: IBarnesHutEntity = _states.removeFirst()
+                val popped: IPointMassEntity = _states.removeFirst()
                 for (node in _nodes) if (node.insert(popped) != null) break
             }
             for (node in _nodes) if (node.insert(state) != null) return this
         }
-        if (_states.size >= _capacity && state.states() in _boundary && split().isEmpty()) {
+        if (_states.size >= _capacity && state.position() in _boundary && split().isEmpty()) {
             _states.add(state)
             return this
         }
         return null
     }
 
-    override fun treeStates(): List<IBarnesHutEntity> =
+    override fun treeStates(): List<IPointMassEntity> =
             _states + _nodes.flatMap { it.treeStates() }
-
-    override fun nodes(): List<ISpaceTree<IBarnesHutEntity>> =
-            _nodes + _nodes.flatMap { it.nodes() }
 
     override fun size(): Long =
             _nodes.size + _nodes.map { it.size() }.sum()
@@ -45,40 +42,40 @@ open class BarnesHutTree(
     override fun occupancy(): Long =
             _states.size + _nodes.map { it.occupancy() }.sum()
 
-    override fun split(): Array<ISpaceTree<IBarnesHutEntity>> {
+    override fun split(): Array<IBarnesHutTree<IPointMassEntity>> {
         if (_nodes.isNotEmpty()) return _nodes.toTypedArray()
         val splitBoundaries: Array<IBoundary<Double, Long>> = _boundary.split()
         if (splitBoundaries.isEmpty()) return emptyArray()
         _boundary.split()
                 .map { BarnesHutTree(_interaction, it) }
-                .onEach { _nodes += it }
+                .onEach { _nodes.add(it) }
         return _nodes.toTypedArray()
     }
 
-    override fun aggregateMass(): Double =
-            _states.map { it.mass() }.sum() + _nodes.map { it.aggregateMass() }.sum()
+    override fun mass(): Double =
+            _states.map { it.mass() }.sum() + _nodes.map { it.mass() }.sum()
 
-    override fun centerOfMass(dimension: Int): List<Double> {
+    override fun position(dimension: Int): List<Double> {
         if (treeStates().isEmpty()) return (0 until dimension).map { 0.0 }.toList()
-        val totalMass: Double = treeStates().filter { it.states().size==dimension }
+        val totalMass: Double = treeStates().filter { it.position().size==dimension }
                 .map{it.mass()}.sum()
-        return treeStates().filter { it.states().size==dimension }
-                .map{it.states().map { x -> x*it.mass()/totalMass } }
+        return treeStates().filter { it.position().size==dimension }
+                .map{it.position().map { x -> x*it.mass()/totalMass } }
                 .reduce{s1, s2->s1.zip(s2){ x1, x2 -> x1+x2 }}
     }
     override fun toString(): String = "$_boundary, $_nodes"
-    override fun force(node: IBarnesHutNode, exponent: Int, theta: Double): List<Double> {
+    override fun force(node: IBarnesHutTree<IPointMassEntity>, exponent: Int, theta: Double): List<Double> {
         if (node == this) return listOf(0.0, 0.0, 0.0)
 
         val occupancy: Long = occupancy()
 
         if (occupancy == 0L) return listOf(0.0, 0.0, 0.0)
 
-        val r: List<Double> = node.centerOfMass().zip(this.centerOfMass()) { r1, r2 -> r1 - r2 }
+        val r: List<Double> = node.position().zip(this.position()) { r1, r2 -> r1 - r2 }
         val quotient: Double = this._boundary.size() / r.toTypedArray().magnitude()
 
         if (occupancy > 0 && (quotient <= theta || _nodes.isEmpty()))
-            return _interaction.force( node.aggregateMass(), aggregateMass(), r, exponent )
+            return _interaction.force( node.mass(), mass(), r, exponent )
 
         if (_nodes.isNotEmpty() && occupancy > 0)
             return _nodes
@@ -87,7 +84,10 @@ open class BarnesHutTree(
         return listOf(0.0, 0.0, 0.0)
     }
 
-    override fun nodeStates(): List<IBarnesHutEntity> {
-        return _states.toList()
-    }
+    override fun children(): List<IBarnesHutTree<IPointMassEntity>> = _nodes.toList()
+
+    override fun nodeStates(): List<IPointMassEntity> = _states.toList()
+
+    override fun iterator(): Iterator<IBarnesHutTree<IPointMassEntity>> = (_nodes+_nodes.flatMap { it.children() }).iterator()
+
 }
