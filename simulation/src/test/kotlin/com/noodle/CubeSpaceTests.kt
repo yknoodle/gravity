@@ -2,6 +2,7 @@ package com.noodle
 
 import com.noodle.bounding.CubeSpace
 import com.noodle.bounding.IBoundary
+import com.noodle.bounding.ISplittable
 import org.junit.Test
 import kotlin.test.assertTrue
 
@@ -10,7 +11,7 @@ class CubeSpaceTests {
     fun canSplit(){
         val resolution = 2L
         val boundedSpace = CubeSpace(resolution)
-        val splitSpace: Array<IBoundary<Double, Long>> = boundedSpace.split()
+        val splitSpace: List<CubeSpace> = boundedSpace.split().map{it as CubeSpace}
         splitSpace.forEach{ println(it) }
         assertTrue("expected 8 but got ${splitSpace.size}"){
             splitSpace.size == 8
@@ -21,7 +22,7 @@ class CubeSpaceTests {
         assertTrue("expected centre"){
             splitSpace[0].origin()[0] == 0L
         }
-        val splitSpace2 = splitSpace[0].split()
+        val splitSpace2 = splitSpace[0].split().map { it as CubeSpace }
         splitSpace2.forEach{println(it)}
         assert(splitSpace2[0].resolution() == 0L)
     }

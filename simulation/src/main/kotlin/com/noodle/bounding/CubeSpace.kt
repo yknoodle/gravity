@@ -6,7 +6,7 @@ data class CubeSpace(
         private val _resolution: Long,
         private val _origin: Array<Long> = arrayOf(0, 0, 0)
 ) : IBoundary<Double, Long> {
-    override fun split(): Array<IBoundary<Double, Long>> {
+    override fun split(): Array<ISplittable> {
         val newResolution = _resolution - 1
         if (newResolution < 0) {
             return arrayOf()

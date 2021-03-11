@@ -2,6 +2,7 @@ package com.noodle.physics
 
 import com.noodle.bounding.CubeSpace
 import com.noodle.bounding.IBoundary
+import com.noodle.bounding.ISplittable
 import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.math.ArrayOperations.magnitude
 
@@ -42,12 +43,12 @@ class BarnesHutTree(
     override fun occupancy(): Long =
             _states.size + _nodes.map { it.occupancy() }.sum()
 
-    override fun split(): Array<IBarnesHutTree<IPointMassEntity>> {
+    override fun split(): Array<ISplittable> {
         if (_nodes.isNotEmpty()) return _nodes.toTypedArray()
-        val splitBoundaries: Array<IBoundary<Double, Long>> = _boundary.split()
+        val splitBoundaries: Array<ISplittable> = _boundary.split()
         if (splitBoundaries.isEmpty()) return emptyArray()
         _boundary.split()
-                .map { BarnesHutTree(_interaction, it) }
+                .map { BarnesHutTree(_interaction, it as CubeSpace) }
                 .onEach { _nodes.add(it) }
         return _nodes.toTypedArray()
     }
@@ -88,6 +89,7 @@ class BarnesHutTree(
 
     override fun nodeStates(): List<IPointMassEntity> = _states.toList()
 
-    override fun iterator(): Iterator<IBarnesHutTree<IPointMassEntity>> = (_nodes+_nodes.flatMap { it.children() }).iterator()
+    override fun iterator(): Iterator<IBarnesHutTree<IPointMassEntity>> =
+            (_nodes+_nodes.flatMap { (it as BarnesHutTree).children() }).iterator()
 
 }
