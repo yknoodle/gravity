@@ -10,8 +10,6 @@ data class Force(
 
     override fun net(): Array<Double> = _components.values.reduce { acc, doubles ->  acc plus doubles}
 
-    override fun id(): String {
-        TODO("Not yet implemented")
-    }
+    override fun id(): String = _id.slice(_id.indices)
 
 }
