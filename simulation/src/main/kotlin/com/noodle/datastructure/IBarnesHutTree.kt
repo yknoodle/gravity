@@ -8,4 +8,5 @@ interface IBarnesHutTree<T> :
         Iterable<IBarnesHutTree<T>>{
     fun force(node: IBarnesHutTree<T>, exponent: Int, theta: Double = 0.5): List<Double>
     fun occupancy(): Long
+    fun edge(): Long
 }

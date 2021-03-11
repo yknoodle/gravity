@@ -92,4 +92,6 @@ class BarnesHutTree(
     override fun iterator(): Iterator<IBarnesHutTree<IPointMassEntity>> =
             (_nodes+_nodes.flatMap { (it as BarnesHutTree).children() }).iterator()
 
+    override fun edge(): Long = _boundary.size()
+
 }
