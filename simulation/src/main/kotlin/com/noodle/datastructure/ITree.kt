@@ -1,6 +1,6 @@
 package com.noodle.datastructure
 
-interface ITree<T> : Iterable<IBarnesHutTree<T>> {
+interface ITree<T> {
     fun insert(state: T): ITree<T>?
     fun children(): List<ITree<T>>
     fun nodeStates(): List<T>

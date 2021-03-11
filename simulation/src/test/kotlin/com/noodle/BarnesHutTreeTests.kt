@@ -117,10 +117,10 @@ class BarnesHutTreeTests {
     fun canIterate() {
         val tree = BarnesHutTree(Gravitation, CubeSpace(3L))
         tree.insert(BarnesHutEntityFactory.builder()
-//                .states(listOf(0.5, 0.5, 0.5))
+                .states(listOf(0.5, 0.5, 0.5))
                 .build())
         tree.insert(BarnesHutEntityFactory.builder()
-//                .states(listOf(1.5, 1.5,1.5))
+                .states(listOf(1.5, 1.5,1.5))
                 .build())
         tree.onEach{
             println(it)
