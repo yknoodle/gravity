@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 class BarnesHutTreeTests {
     @Test
     fun canInsert() {
-        val tree = BarnesHutTree(Gravitation, CubeSpace(15))
+        val tree = BarnesHutTree(CubeSpace(15))
         tree.insert(PointMassEntity(10.0, 1.0, 1.0, 1.0))
         tree.insert(PointMassEntity(10.0, 1.0, 1.0, 2.0))
         println("$tree")
@@ -27,7 +27,7 @@ class BarnesHutTreeTests {
     @Test
     fun insertMany() {
         val resolution = 10L
-        val tree = BarnesHutTree(Gravitation, CubeSpace(resolution))
+        val tree = BarnesHutTree(CubeSpace(resolution))
         val inserts = 500
         val bound = 2.0.pow(resolution.toInt()).toLong()
         (0 until inserts).onEach {
@@ -46,7 +46,7 @@ class BarnesHutTreeTests {
     @Test
     fun centerMassIsCorrect() {
         val resolution = 5L
-        val tree = BarnesHutTree(Gravitation, CubeSpace(resolution))
+        val tree = BarnesHutTree(CubeSpace(resolution))
         val origin: IPointMassEntity = PointMassEntity(100.0, 0.0, 0.0, 0.0)
         val far: IPointMassEntity = PointMassEntity(100.0, 10.0, 0.0, 0.0)
         tree.insert(origin)
@@ -64,7 +64,7 @@ class BarnesHutTreeTests {
     @Test
     fun centerMassIsCorrect2() {
         val resolution = 5L
-        val tree = BarnesHutTree(Gravitation, CubeSpace(resolution))
+        val tree = BarnesHutTree(CubeSpace(resolution))
         val origin: IPointMassEntity = PointMassEntity(100.0, 0.0, 0.0, 0.0)
         val far: IPointMassEntity = PointMassEntity(300.0, 2.0, 4.0, 4.0)
         tree.insert(origin)
@@ -80,7 +80,7 @@ class BarnesHutTreeTests {
     @Test
     fun canComputeHumanWeightOnEarth() {
         val resolution = 13L
-        val tree = BarnesHutTree(Gravitation, CubeSpace(resolution))
+        val tree = BarnesHutTree(CubeSpace(resolution))
         val earth: IPointMassEntity = PointMassEntity(5.972e24, 0.0, 0.0, 0.0)
         val human: IPointMassEntity = PointMassEntity(5e1, 6.317e3, 0.0, 0.0)
         val human2: IPointMassEntity = PointMassEntity(5e1, 4.417e3, 4.4e3, 0.0)
@@ -88,10 +88,10 @@ class BarnesHutTreeTests {
         tree.insert(human)
         tree.insert(human2)
         val nodes: List<IBarnesHutTree<IPointMassEntity>> =
-                tree.toList().filter { it.nodeStates().isNotEmpty() }
+                tree.nodes().filter { it.nodeStates().isNotEmpty() }
         nodes.onEach { println("$it") }
         val weight = nodes
-                .map { tree.force(it, 3) }
+                .map { tree.solve(it, 3) }
 //                .map { it.toTypedArray().magnitude()}
                 .onEach { println("$it") }
         assert(nodes.isNotEmpty())
@@ -101,7 +101,7 @@ class BarnesHutTreeTests {
     @Test
     fun computeMany() {
         val resolution = 16L
-        val tree = BarnesHutTree(Gravitation, CubeSpace(resolution))
+        val tree = BarnesHutTree(CubeSpace(resolution))
         val inserts = 100
         val bound = 2.0.pow(resolution.toInt()).toLong()
         (0 until inserts).onEach {
@@ -113,17 +113,15 @@ class BarnesHutTreeTests {
                     )
             )
         }
-        tree.asSequence().filter { it.nodeStates().isNotEmpty() }
-                .onEach { println("$it") }
-                .map { tree.force(it, 3) }
-                .onEach { println("$it") }.toList()
-        println("${tree.toList().filter { it.nodeStates().isNotEmpty() }.count()}, ${Gravitation.computations()}")
-        println("$tree")
+        tree.nodes().asSequence().filter { it.nodeStates().isNotEmpty() }
+                .map { tree.solve(it, 3) }
+                .onEach { println(it) }.toList()
+        println("${tree.nodes().filter { it.nodeStates().isNotEmpty() }.count()}")
     }
 
     @Test
     fun canIterate() {
-        val tree = BarnesHutTree(Gravitation, CubeSpace(3L))
+        val tree = BarnesHutTree(CubeSpace(3L))
         tree.insert(BarnesHutEntityFactory.builder()
                 .states(listOf(0.5, 0.5, 0.5))
                 .mass(20.0)
@@ -131,7 +129,7 @@ class BarnesHutTreeTests {
         tree.insert(BarnesHutEntityFactory.builder()
                 .states(listOf(1.5, 1.5, 1.5))
                 .build())
-        tree.onEach {
+        tree.nodes().onEach {
             println(it)
         }
 

@@ -1,8 +1,7 @@
 package com.noodle.gravity
 
-import com.noodle.physics.IPointMassEntity
+import com.noodle.physics.IForceResult
 import com.noodle.physics.PointMassEntity
-import com.noodle.physics.gravitation.IForce
 import com.noodle.physics.gravitation.IGravitation
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +16,7 @@ class Stage(
     override fun buildFrame(): IFrame {
         val lastFrame: IFrame = _frames.last()
         val entities: List<IFrameEntity> = _frames.last().entities()
-        val gravitationForces: Flow<PointMassEntity> = _gravityCalculator.compute(entities)
+        val gravitationForces: Flow<IForceResult> = _gravityCalculator.compute(entities)
         return lastFrame
     }
 

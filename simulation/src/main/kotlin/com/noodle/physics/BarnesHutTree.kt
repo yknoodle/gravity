@@ -7,7 +7,6 @@ import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.math.ArrayOperations.magnitude
 
 class BarnesHutTree(
-        private val _interaction: IMassInteraction,
         private val _boundary: IBoundary<Double, Long> = CubeSpace(50L),
         private val _capacity: Int = 1,
         private val _states: MutableList<IPointMassEntity> = mutableListOf(),
@@ -43,12 +42,15 @@ class BarnesHutTree(
     override fun occupancy(): Long =
             _states.size + _nodes.map { it.occupancy() }.sum()
 
+    override fun nodes(): List<IBarnesHutTree<IPointMassEntity>> =
+            _nodes+_nodes.flatMap { (it as BarnesHutTree).nodes() }
+
     override fun split(): Array<ISplittable> {
         if (_nodes.isNotEmpty()) return _nodes.toTypedArray()
         val splitBoundaries: Array<ISplittable> = _boundary.split()
         if (splitBoundaries.isEmpty()) return emptyArray()
         _boundary.split()
-                .map { BarnesHutTree(_interaction, it as CubeSpace) }
+                .map { BarnesHutTree(it as CubeSpace) }
                 .onEach { _nodes.add(it) }
         return _nodes.toTypedArray()
     }
@@ -64,33 +66,30 @@ class BarnesHutTree(
                 .map{it.position().map { x -> x*it.mass()/totalMass } }
                 .reduce{s1, s2->s1.zip(s2){ x1, x2 -> x1+x2 }}
     }
-    override fun toString(): String = "$_boundary, $_nodes"
-    override fun force(node: IBarnesHutTree<IPointMassEntity>, exponent: Int, theta: Double): List<Double> {
-        if (node == this) return listOf(0.0, 0.0, 0.0)
+    override fun toString(): String = "$_boundary, nodes: $_nodes, states: $_states"
+    override fun solve(node: IBarnesHutTree<IPointMassEntity>, exponent: Int, theta: Double): BarnesHutResult{
+        if (node == this) return BarnesHutResult(node)
 
         val occupancy: Long = occupancy()
 
-        if (occupancy == 0L) return listOf(0.0, 0.0, 0.0)
+        if (occupancy == 0L) return BarnesHutResult(node)
 
         val r: List<Double> = node.position().zip(this.position()) { r1, r2 -> r1 - r2 }
         val quotient: Double = this._boundary.size() / r.toTypedArray().magnitude()
 
         if (occupancy > 0 && (quotient <= theta || _nodes.isEmpty()))
-            return _interaction.force( node.mass(), mass(), r, exponent )
+            return BarnesHutResult(node, mutableListOf(this))
 
         if (_nodes.isNotEmpty() && occupancy > 0)
             return _nodes
-                    .map { it.force(node, exponent) }
-                    .reduce { acc, component -> acc.zip(component) { x1, x2 -> x1 + x2 } }
-        return listOf(0.0, 0.0, 0.0)
+                    .map { it.solve(node, exponent) }
+                    .reduce { acc, component -> acc + component }
+        return BarnesHutResult(node)
     }
 
     override fun children(): List<IBarnesHutTree<IPointMassEntity>> = _nodes.toList()
 
     override fun nodeStates(): List<IPointMassEntity> = _states.toList()
-
-    override fun iterator(): Iterator<IBarnesHutTree<IPointMassEntity>> =
-            (_nodes+_nodes.flatMap { (it as BarnesHutTree).children() }).iterator()
 
     override fun edge(): Long = _boundary.size()
 

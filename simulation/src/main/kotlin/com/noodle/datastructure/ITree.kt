@@ -5,5 +5,6 @@ interface ITree<T> {
     fun children(): List<ITree<T>>
     fun nodeStates(): List<T>
     fun treeStates(): List<T>
+    fun nodes(): List<ITree<T>>
     fun size(): Long
 }

@@ -1,13 +1,11 @@
 package com.noodle.gravity
 
-import com.noodle.physics.IPointMassEntity
-import com.noodle.physics.BarnesHutTree
+import com.noodle.bounding.CubeSpace
 import com.noodle.datastructure.IBarnesHutTree
-import com.noodle.math.ArrayOperations.times
-import com.noodle.physics.PointMassEntity
+import com.noodle.physics.*
 import com.noodle.physics.gravitation.Gravitation
-import com.noodle.physics.gravitation.IForce
 import com.noodle.physics.gravitation.IGravitation
+import com.noodle.math.IterableOperations.minus
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 
@@ -15,23 +13,26 @@ object BarnesHutGravityCalculator : IGravitation {
     @FlowPreview
     override fun compute(
             entities: List<IPointMassEntity>,
-            exponent: Int): Flow<PointMassEntity> {
-        val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(Gravitation)
+            resolution: Long,
+            exponent: Int): Flow<IForceResult> {
+        val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(resolution))
         entities.mapNotNull { tree.insert(it) }
-        return tree.asSequence().asFlow().flatMapMerge { node ->
-            val force: List<Double> = tree.force(tree, exponent)
-//            node.nodeStates().scan(mutableMapOf<String, List<Array<Double>>>()) { acc, state ->
-//                val forceComponents: List<Array<Double>> = components.map { component -> component.toTypedArray() * (state.mass() / node.mass())}
-//                acc[state.id()] = forceComponents
-//                acc
-//            }.reduce { acc, mutableMap ->  acc.putAll(mutableMap)}.map { Force(it.) }
-//        }
-            node.nodeStates().asFlow().map { state ->
-                PointMassEntity(
-                        state.mass(),
-                        *force.toDoubleArray(),
-                        _id = state.id())
-            }
+        return tree.nodes().filter { it.nodeStates().isNotEmpty() }.asFlow().flatMapMerge { node ->
+            val barnesHutResult: BarnesHutResult = tree.solve(node as IBarnesHutTree<IPointMassEntity>, exponent)
+            barnesHutResult.affectNode.nodeStates().map { affect ->
+
+                barnesHutResult.effectNode.fold(ForceResult(affect.id())) { F, effect ->
+                    val r: List<Double> = affect.position() minus effect.position()
+                    val forceComponents = effect.treeStates()
+                            .map { it.id() to Gravitation.force(it.mass(), effect.mass(), r) }
+                            .fold(mutableMapOf<String, List<Double>>()) { acc, cur ->
+                                acc[cur.first] = cur.second
+                                acc
+                            }
+                    F.components() += forceComponents
+                    F
+                }
+            }.asFlow()
         }
     }
 }
