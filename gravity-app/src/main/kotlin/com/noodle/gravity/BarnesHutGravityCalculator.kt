@@ -3,9 +3,7 @@ package com.noodle.gravity
 import com.noodle.bounding.CubeSpace
 import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.physics.*
-import com.noodle.physics.gravitation.Gravitation
 import com.noodle.physics.gravitation.IGravitation
-import com.noodle.math.IterableOperations.minus
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 
@@ -16,25 +14,12 @@ object BarnesHutGravityCalculator : IGravitation {
             resolution: Long,
             scale: Int): Flow<IForceResult> {
         val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(resolution))
+        val interpreter: IBarnesHutResultInterpreter<IPointMassEntity> = BarnesHutResultInterpreter()
         entities.mapNotNull { tree.insert(it) }
         return tree.nodes().asFlow()
                 .filter { it.localStates().isNotEmpty() }
                 .map { BarnesHutTreeSolver.solve(it, tree) }
-                .flatMapMerge { f(it).asFlow() }
+                .flatMapMerge { interpreter.apply(it).asFlow() }
     }
 
-    fun f(barnesHutResult: IBarnesHutResult<IPointMassEntity>): List<IForceResult> =
-            barnesHutResult.affected().localStates().map { affected ->
-                barnesHutResult.effector().fold(ForceResult(affected.id())) { F, effector ->
-                    val r: List<Double> = affected.position() minus effector.position()
-                    val forceComponents = effector.states()
-                            .map { it.id() to Gravitation.force(it.mass(), effector.mass(), r) }
-                            .fold(mutableMapOf<String, List<Double>>()) { acc, cur ->
-                                acc[cur.first] = cur.second
-                                acc
-                            }
-                    F.components() += forceComponents
-                    F
-                }
-            }
 }

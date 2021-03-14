@@ -9,8 +9,7 @@ class BarnesHutTree(
         private val _boundary: IBoundary<Double, Long> = CubeSpace(50L),
         private val _capacity: Int = 1,
         private val _states: MutableList<IPointMassEntity> = mutableListOf(),
-        private val _nodes: MutableList<IBarnesHutTree<IPointMassEntity>> = mutableListOf(),
-        private val _solver: IBarnesHutTreeSolver<IPointMassEntity> = BarnesHutTreeSolver
+        private val _nodes: MutableList<IBarnesHutTree<IPointMassEntity>> = mutableListOf()
 ) : IBarnesHutTree<IPointMassEntity> {
     override fun insert(state: IPointMassEntity): IBarnesHutTree<IPointMassEntity>? {
         if (_states.size < _capacity && state.position() in _boundary && _nodes.isEmpty()) {
@@ -74,10 +73,5 @@ class BarnesHutTree(
     override fun localStates(): List<IPointMassEntity> = _states.toList()
 
     override fun edge(): Long = _boundary.size()
-
-    override fun solve(
-            node: IBarnesHutTree<IPointMassEntity>,
-            theta: Double, scale: Int): BarnesHutResult<IPointMassEntity> =
-            _solver.solve(node, this, theta, scale)
 
 }

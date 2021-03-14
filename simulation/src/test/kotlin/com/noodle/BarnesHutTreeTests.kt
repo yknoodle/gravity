@@ -93,9 +93,10 @@ class BarnesHutTreeTests {
         val nodes: List<IBarnesHutTree<IPointMassEntity>> =
                 tree.nodes().filter { it.localStates().isNotEmpty() }
         nodes.onEach { println("$it") }
+        val interpreter = BarnesHutResultInterpreter()
         val resultMap: Map<String, IForceResult> = nodes
                 .map { BarnesHutTreeSolver.solve(it, tree) }
-                .flatMap { BarnesHutResultInterpreter.f(it) }
+                .flatMap { interpreter.apply(it) }
                 .fold(mapOf<String, IForceResult>()){ acc, cur -> acc + (cur.id() to cur)}
                 .onEach { println(it) }
         assert(nodes.isNotEmpty())
@@ -124,7 +125,7 @@ class BarnesHutTreeTests {
             )
         }
         tree.nodes().asSequence().filter { it.localStates().isNotEmpty() }
-                .map { tree.solve(it, scale = 3) }
+                .map { BarnesHutTreeSolver.solve(it, tree)}
                 .onEach { println(it) }.toList()
         println()
         assert(inserts.toLong() == tree.occupancy()) { "${tree.nodes().filter { it.localStates().isNotEmpty() }.count()}" }

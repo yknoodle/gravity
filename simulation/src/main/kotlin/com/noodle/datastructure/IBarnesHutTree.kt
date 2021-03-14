@@ -10,5 +10,4 @@ interface IBarnesHutTree<T> :
     fun edge(): Long
     override fun nodes(): List<IBarnesHutTree<T>>
     override fun localNodes(): List<IBarnesHutTree<T>>
-    fun solve(node: IBarnesHutTree<T>, theta: Double = 0.5, scale: Int): BarnesHutResult<T>
 }

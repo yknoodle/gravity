@@ -31,7 +31,7 @@ class GravityCalculatorTests {
     @FlowPreview
     @Test
     fun calculateEarthMoon(): Unit = runBlocking {
-        val earthCenter: Double = 400000.0
+        val earthCenter = 400000.0
         val entities: List<IPointMassEntity> = listOf(
                 PointEntityFactory.builder()
                         .from(Earth)
@@ -76,7 +76,6 @@ class GravityCalculatorTests {
         println("started on $inserts inserts")
         BarnesHutGravityCalculator.compute(entities, 50)
                 .collect { println(it) }
-//                .collect()
         println("completed $inserts inserts")
     }
 }
