@@ -11,6 +11,6 @@ object IterableOperations {
             this.zip(other) { d1, d2 -> d1.toDouble() - d2.toDouble() }
     fun Iterable<Number>.magnitude(): Double =
             (this dot this).pow(0.5)
-    operator fun Iterable<Number>.times(other: Number): Iterable<Double> =
+    operator fun Iterable<Number>.times(other: Number): List<Double> =
             this.map { it.toDouble() * other.toDouble() }
 }

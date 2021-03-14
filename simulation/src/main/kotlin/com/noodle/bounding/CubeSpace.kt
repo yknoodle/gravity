@@ -28,7 +28,7 @@ data class CubeSpace(
     }
 
     override fun toString(): String =
-            "resolution: ${_resolution}, origin: (${_origin[0]}, ${_origin[1]}, ${_origin[2]})"
+            "CubeSpace={resolution=${_resolution}, origin: (${_origin[0]}, ${_origin[1]}, ${_origin[2]})}"
 
     override fun resolution(): Long = _resolution
     override fun origin(): List<Long> = _origin.toList()

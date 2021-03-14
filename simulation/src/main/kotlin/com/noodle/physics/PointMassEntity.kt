@@ -19,7 +19,7 @@ class PointMassEntity(
     override fun id(): String = _id
     override fun mass(): Double = _mass
     override fun toString(): String =
-            "{id: $_id, mass: $_mass, position: ${_states.toList()}}"
+            "{id: $_id, mass: $_mass, states: ${_states.toList()}}"
     companion object StaticProperties {
         enum class State{
             POSITION,

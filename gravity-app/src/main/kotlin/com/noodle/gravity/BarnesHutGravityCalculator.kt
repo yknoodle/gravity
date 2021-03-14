@@ -10,19 +10,19 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 
 class BarnesHutGravityCalculator(
-        private val _tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(50L)),
         private val _solver: IBarnesHutSolver<IPointMassEntity> = BarnesHutSolver,
         private val _interpreter: IBarnesHutResultInterpreter<IPointMassEntity> = BarnesHutResultInterpreter(Gravitation)
 ) : IForceCalculator {
     @FlowPreview
     override fun compute(
             entities: List<IPointMassEntity>,
-            resolution: Long,
-            scale: Int): Flow<IForceResult> {
-        entities.mapNotNull { _tree.insert(it) }
-        return _tree.nodes().asFlow()
+            scale: Int,
+    ): Flow<IForceResult> {
+        val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(50L))
+        entities.mapNotNull { tree.insert(it) }
+        return tree.nodes().asFlow()
                 .filter { it.localStates().isNotEmpty() }
-                .map { _solver.solve(it, _tree, scale = scale) }
+                .map { _solver.solve(it, tree, scale = scale) }
                 .flatMapMerge { _interpreter.apply(it) }
     }
 

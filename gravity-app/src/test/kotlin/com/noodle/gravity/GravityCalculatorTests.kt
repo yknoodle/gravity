@@ -1,14 +1,14 @@
 package com.noodle.gravity
 
-import com.noodle.physics.PointMassEntity
-import com.noodle.physics.PointMassEntityFactory
-import com.noodle.physics.IForceResult
-import com.noodle.physics.IPointMassEntity
+import com.noodle.physics.*
 import com.noodle.physics.gravitation.Earth
 import com.noodle.physics.gravitation.IForceCalculator
 import com.noodle.physics.gravitation.Moon
+import com.noodle.math.IterableOperations.plus
+import com.noodle.math.IterableOperations.times
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -37,28 +37,42 @@ class GravityCalculatorTests {
         val entities: List<IPointMassEntity> = listOf(
                 PointMassEntityFactory.builder()
                         .from(Earth)
-                        .states(listOf(earthCenter, 0.0, 0.0)).build(),
+                        .states(listOf(earthCenter, earthCenter, 0.0)).build(),
                 PointMassEntityFactory.builder()
                         .from(Moon)
-                        .states(listOf(earthCenter + 384400.0, 0.0, 0.0)).build(),
+                        .states(listOf(earthCenter + 384400.0, earthCenter + 1.0, 0.0,0.0, 3600.0, 0.0)).build(),
                 PointMassEntityFactory.builder()
                         .from(Moon)
                         .id("Moon2")
-                        .states(listOf(earthCenter - 384400.0, 0.0, 0.0)).build(),
+                        .states(listOf(earthCenter - 384400.0, earthCenter - 1.0, 0.0,0.0, -3600.0, 0.0)).build(),
                 PointMassEntityFactory.builder()
                         .mass(100.0)
                         .id("poop")
-                        .states(listOf(earthCenter, 0.0, 0.0)).build()
+                        .states(listOf(earthCenter, earthCenter, 0.0)).build()
         )
         val calculator = BarnesHutGravityCalculator()
         val result = calculator.compute(entities)
                 .onEach { println(it) }
                 .toList()
-                .fold(mutableMapOf<String, IForceResult>()){ acc, cur ->
+                .fold(mutableMapOf<String, IForceResult>()) { acc, cur ->
                     acc[cur.id()] = cur
                     acc
                 }
         assert(result["poop"]?.components()?.size == 2)
+        val entityMap: Map<String, IPointMassEntity> = entities.fold(mapOf()) { acc, cur -> acc + (cur.id() to cur) }
+        calculator.compute(entities)
+                .map {
+                    val entity: IPointMassEntity = entityMap[it.id()] ?: error("${it.id()} does not exist")
+                    val a: List<Double> =
+                            it.components().values.reduce { acc, list -> acc plus list } *
+                                    (1 / entity.mass())
+                    val v: List<Double> =
+                            StepKinematics.velocity(entity.velocity(), a, 1)
+                    val s: List<Double> =
+                            StepKinematics.displacement(entity.velocity(), a, 1)
+                    s
+                }
+                .collect { println("disp: $it") }
     }
 
     @FlowPreview
@@ -76,10 +90,23 @@ class GravityCalculatorTests {
                     _id = it.toString()
             )
         }
+        val speedCalculator: IKinematics<List<Double>, Long> = StepKinematics
+        val entityMap: Map<String, IPointMassEntity> = entities.fold(mapOf()) { acc, cur -> acc + (cur.id() to cur) }
         val calculator: IForceCalculator = BarnesHutGravityCalculator()
         println("started on $inserts inserts")
-        calculator.compute(entities, 50)
-                .collect { println(it) }
+        calculator.compute(entities)
+                .map {
+                    val entity: IPointMassEntity = entityMap[it.id()] ?: error("${it.id()} does not exist")
+                    val a: List<Double> =
+                            it.components().values.reduce { acc, list -> acc plus list } *
+                                    (1 / (entityMap[it.id()]?.mass() ?: 1.0))
+                    val v: List<Double> =
+                            StepKinematics.velocity(entity.velocity(), a, 60)
+                    val s: List<Double> =
+                            StepKinematics.displacement(entity.velocity(), a, 60)
+                    s
+                }
+                .collect { println("disp: $it") }
         println("completed $inserts inserts")
     }
 }

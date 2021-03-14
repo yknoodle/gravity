@@ -5,5 +5,5 @@ import com.noodle.physics.IPointMassEntity
 import kotlinx.coroutines.flow.Flow
 
 interface IForceCalculator {
-    fun compute(entities: List<IPointMassEntity>, resolution: Long = 25, scale: Int = 3): Flow<IForceResult>
+    fun compute(entities: List<IPointMassEntity>, scale: Int = 3): Flow<IForceResult>
 }
