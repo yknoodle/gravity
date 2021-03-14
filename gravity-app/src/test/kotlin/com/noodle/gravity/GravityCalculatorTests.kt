@@ -77,7 +77,8 @@ class GravityCalculatorTests {
         }
         println("started on $inserts inserts")
         BarnesHutGravityCalculator.compute(entities, 50)
-                .collect()
+                .collect { println(it) }
+//                .collect()
         println("completed $inserts inserts")
     }
 }

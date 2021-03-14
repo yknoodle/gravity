@@ -4,7 +4,6 @@ import com.noodle.physics.BarnesHutTree
 import com.noodle.bounding.CubeSpace
 import com.noodle.physics.IPointMassEntity
 import com.noodle.datastructure.IBarnesHutTree
-import com.noodle.physics.gravitation.Gravitation
 import com.noodle.physics.BarnesHutEntityFactory
 import com.noodle.physics.PointMassEntity
 import org.junit.Test
@@ -91,7 +90,7 @@ class BarnesHutTreeTests {
                 tree.nodes().filter { it.nodeStates().isNotEmpty() }
         nodes.onEach { println("$it") }
         val weight = nodes
-                .map { tree.solve(it, 3) }
+                .map { tree.solve(it, scale = 3) }
 //                .map { it.toTypedArray().magnitude()}
                 .onEach { println("$it") }
         assert(nodes.isNotEmpty())
@@ -114,9 +113,10 @@ class BarnesHutTreeTests {
             )
         }
         tree.nodes().asSequence().filter { it.nodeStates().isNotEmpty() }
-                .map { tree.solve(it, 3) }
+                .map { tree.solve(it, scale = 3) }
                 .onEach { println(it) }.toList()
-        println("${tree.nodes().filter { it.nodeStates().isNotEmpty() }.count()}")
+        println()
+        assert(inserts.toLong() == tree.occupancy()) { "${tree.nodes().filter { it.nodeStates().isNotEmpty() }.count()}" }
     }
 
     @Test

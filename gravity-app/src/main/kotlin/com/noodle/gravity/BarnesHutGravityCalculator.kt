@@ -18,7 +18,7 @@ object BarnesHutGravityCalculator : IGravitation {
         val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(resolution))
         entities.mapNotNull { tree.insert(it) }
         return tree.nodes().filter { it.nodeStates().isNotEmpty() }.asFlow().flatMapMerge { node ->
-            val barnesHutResult: BarnesHutResult = tree.solve(node as IBarnesHutTree<IPointMassEntity>, exponent)
+            val barnesHutResult: BarnesHutResult<IPointMassEntity> = tree.solve(node, scale = exponent)
             barnesHutResult.affectNode.nodeStates().map { affect ->
 
                 barnesHutResult.effectNode.fold(ForceResult(affect.id())) { F, effect ->
