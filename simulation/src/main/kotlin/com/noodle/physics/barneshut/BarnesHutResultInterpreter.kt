@@ -16,7 +16,7 @@ class BarnesHutResultInterpreter(
     override fun apply(result: IBarnesHutResult<IPointMassEntity>): Flow<IForceResult> =
             result.affected().localStates().asFlow().map { affected ->
                 result.effector().fold(ForceResult(affected.id())) { F, effector ->
-                    val r: List<Double> = affected.position() minus effector.position()
+                    val r: List<Double> = effector.position() minus affected.position()
                     val forceComponents = effector.states()
                             .map { it.id() to _interaction.force(affected.mass(), it.mass(), r) }
                             .fold(mutableMapOf<String, List<Double>>()) { acc, cur ->
