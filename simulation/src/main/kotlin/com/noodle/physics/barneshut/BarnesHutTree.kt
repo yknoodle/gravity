@@ -1,9 +1,9 @@
-package com.noodle.physics
+package com.noodle.physics.barneshut
 
 import com.noodle.bounding.CubeSpace
 import com.noodle.bounding.IBoundary
-import com.noodle.bounding.ISplittable
 import com.noodle.datastructure.IBarnesHutTree
+import com.noodle.physics.IPointMassEntity
 
 class BarnesHutTree(
         private val _boundary: IBoundary<Double, Long> = CubeSpace(50L),
@@ -42,16 +42,16 @@ class BarnesHutTree(
             _states.size + _nodes.map { it.occupancy() }.sum()
 
     override fun nodes(): List<IBarnesHutTree<IPointMassEntity>> =
-            _nodes + _nodes.flatMap { (it as BarnesHutTree).nodes() }
+            _nodes + _nodes.flatMap { (it).nodes() }
 
-    override fun split(): Array<ISplittable> {
-        if (_nodes.isNotEmpty()) return _nodes.toTypedArray()
-        val splitBoundaries: Array<ISplittable> = _boundary.split()
-        if (splitBoundaries.isEmpty()) return emptyArray()
+    override fun split(): List<IBarnesHutTree<IPointMassEntity>> {
+        if (_nodes.isNotEmpty()) return _nodes
+        val splitBoundaries: List<IBoundary<Double, Long>> = _boundary.split()
+        if (splitBoundaries.isEmpty()) return emptyList()
         _boundary.split()
-                .map { BarnesHutTree(it as CubeSpace) }
+                .map { BarnesHutTree(it) }
                 .onEach { _nodes.add(it) }
-        return _nodes.toTypedArray()
+        return _nodes
     }
 
     override fun mass(): Double =

@@ -1,7 +1,6 @@
-package com.noodle.physics
+package com.noodle.physics.barneshut
 
 import com.noodle.datastructure.IBarnesHutTree
-import com.noodle.physics.gravitation.Gravitation
 
 data class BarnesHutResult<T>(
         val affectedNode: IBarnesHutTree<T>,

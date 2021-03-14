@@ -1,15 +1,16 @@
-package com.noodle.physics
+package com.noodle.physics.barneshut
 
 import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.math.ArrayOperations.magnitude
+import com.noodle.physics.IPointMassEntity
 
-object BarnesHutTreeSolver : IBarnesHutTreeSolver<IPointMassEntity> {
+object BarnesHutSolver : IBarnesHutSolver<IPointMassEntity> {
     override fun solve(
             node: IBarnesHutTree<IPointMassEntity>,
             root: IBarnesHutTree<IPointMassEntity>,
             theta: Double,
             scale: Int
-    ): BarnesHutResult<IPointMassEntity> {
+    ): IBarnesHutResult<IPointMassEntity> {
         if (node == root) return BarnesHutResult(node)
 
         val occupancy: Long = root.occupancy()

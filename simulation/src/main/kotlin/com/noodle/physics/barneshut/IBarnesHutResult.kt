@@ -1,4 +1,4 @@
-package com.noodle.physics
+package com.noodle.physics.barneshut
 
 import com.noodle.datastructure.IBarnesHutTree
 

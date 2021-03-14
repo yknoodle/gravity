@@ -1,10 +1,11 @@
 package com.noodle.gravity
 
 import com.noodle.physics.PointMassEntity
-import com.noodle.physics.PointEntityFactory
+import com.noodle.physics.PointMassEntityFactory
 import com.noodle.physics.IForceResult
 import com.noodle.physics.IPointMassEntity
 import com.noodle.physics.gravitation.Earth
+import com.noodle.physics.gravitation.IForceCalculator
 import com.noodle.physics.gravitation.Moon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
@@ -24,7 +25,8 @@ class GravityCalculatorTests {
                         PointMassEntity(100.0, 0.0, 0.0, 0.0),
                         PointMassEntity(100.0, 1.0, 1.0, 1.0)
                 )
-        BarnesHutGravityCalculator.compute(entities)
+        val calculator = BarnesHutGravityCalculator()
+        calculator.compute(entities)
                 .collect { println("$it") }
     }
 
@@ -33,23 +35,24 @@ class GravityCalculatorTests {
     fun calculateEarthMoon(): Unit = runBlocking {
         val earthCenter = 400000.0
         val entities: List<IPointMassEntity> = listOf(
-                PointEntityFactory.builder()
+                PointMassEntityFactory.builder()
                         .from(Earth)
                         .states(listOf(earthCenter, 0.0, 0.0)).build(),
-                PointEntityFactory.builder()
+                PointMassEntityFactory.builder()
                         .from(Moon)
                         .states(listOf(earthCenter + 384400.0, 0.0, 0.0)).build(),
-                PointEntityFactory.builder()
+                PointMassEntityFactory.builder()
                         .from(Moon)
                         .id("Moon2")
                         .states(listOf(earthCenter - 384400.0, 0.0, 0.0)).build(),
-                PointEntityFactory.builder()
+                PointMassEntityFactory.builder()
                         .mass(100.0)
                         .id("poop")
                         .states(listOf(earthCenter, 0.0, 0.0)).build()
         )
-        val result = BarnesHutGravityCalculator.compute(entities)
-                .onEach { println("${it.id()}, ${it.components()}") }
+        val calculator = BarnesHutGravityCalculator()
+        val result = calculator.compute(entities)
+                .onEach { println(it) }
                 .toList()
                 .fold(mutableMapOf<String, IForceResult>()){ acc, cur ->
                     acc[cur.id()] = cur
@@ -73,8 +76,9 @@ class GravityCalculatorTests {
                     _id = it.toString()
             )
         }
+        val calculator: IForceCalculator = BarnesHutGravityCalculator()
         println("started on $inserts inserts")
-        BarnesHutGravityCalculator.compute(entities, 50)
+        calculator.compute(entities, 50)
                 .collect { println(it) }
         println("completed $inserts inserts")
     }

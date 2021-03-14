@@ -6,17 +6,16 @@ data class CubeSpace(
         private val _resolution: Long,
         private val _origin: Array<Long> = arrayOf(0, 0, 0)
 ) : IBoundary<Double, Long> {
-    override fun split(): Array<ISplittable> {
+    override fun split(): List<IBoundary<Double,Long>> {
         val newResolution = _resolution - 1
         if (newResolution < 0) {
-            return arrayOf()
+            return listOf()
         }
         val newSize: Long = 2.0.pow(newResolution.toInt()).toLong()
         return steps
                 .map { it.map { x -> newSize * x } }
                 .map { it.zip(_origin) { x1, x2 -> x1 + x2 } }
                 .map { CubeSpace(newResolution, it.toTypedArray()) }
-                .toTypedArray()
     }
 
     override operator fun contains(state: List<Double>): Boolean {
@@ -38,7 +37,7 @@ data class CubeSpace(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as com.noodle.bounding.CubeSpace
+        other as CubeSpace
 
         if (_resolution != other._resolution) return false
         if (!_origin.contentEquals(other._origin)) return false
@@ -52,7 +51,7 @@ data class CubeSpace(
         return result
     }
 
-    companion object CubeSpace {
+    companion object CubeSpaceSteps {
         val steps:List<List<Int>> = listOf(
                 listOf(0, 0, 0), listOf(0, 0, 1), listOf(0, 1, 0), listOf(1, 0, 0),
                 listOf(1, 0, 1), listOf(1, 1, 0), listOf(0, 1, 1), listOf(1, 1, 1)
