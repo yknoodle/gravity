@@ -23,7 +23,7 @@ class BarnesHutTreeSolver : IBarnesHutTreeSolver<IPointMassEntity> {
             return BarnesHutResult(node, mutableListOf(root))
 
         if (root.nodes().isNotEmpty() && occupancy > 0)
-            return root.nodes()
+            return root.localNodes()
                     .map { solve(node, it, theta, scale) }
                     .reduce { acc, component -> acc + component }
         return BarnesHutResult(node)

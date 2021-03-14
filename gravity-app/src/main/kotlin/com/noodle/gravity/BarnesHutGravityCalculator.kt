@@ -1,5 +1,4 @@
 package com.noodle.gravity
-
 import com.noodle.bounding.CubeSpace
 import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.physics.*
@@ -17,13 +16,13 @@ object BarnesHutGravityCalculator : IGravitation {
             exponent: Int): Flow<IForceResult> {
         val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(resolution))
         entities.mapNotNull { tree.insert(it) }
-        return tree.nodes().filter { it.nodeStates().isNotEmpty() }.asFlow().flatMapMerge { node ->
+        return tree.nodes().filter { it.localStates().isNotEmpty() }.asFlow().flatMapMerge { node ->
             val barnesHutResult: BarnesHutResult<IPointMassEntity> = tree.solve(node, scale = exponent)
-            barnesHutResult.affectNode.nodeStates().map { affect ->
+            barnesHutResult.affectNode.localStates().map { affect ->
 
                 barnesHutResult.effectNode.fold(ForceResult(affect.id())) { F, effect ->
                     val r: List<Double> = affect.position() minus effect.position()
-                    val forceComponents = effect.treeStates()
+                    val forceComponents = effect.states()
                             .map { it.id() to Gravitation.force(it.mass(), effect.mass(), r) }
                             .fold(mutableMapOf<String, List<Double>>()) { acc, cur ->
                                 acc[cur.first] = cur.second

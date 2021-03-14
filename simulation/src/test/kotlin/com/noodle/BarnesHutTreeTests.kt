@@ -87,7 +87,7 @@ class BarnesHutTreeTests {
         tree.insert(human)
         tree.insert(human2)
         val nodes: List<IBarnesHutTree<IPointMassEntity>> =
-                tree.nodes().filter { it.nodeStates().isNotEmpty() }
+                tree.nodes().filter { it.localStates().isNotEmpty() }
         nodes.onEach { println("$it") }
         val weight = nodes
                 .map { tree.solve(it, scale = 3) }
@@ -112,11 +112,11 @@ class BarnesHutTreeTests {
                     )
             )
         }
-        tree.nodes().asSequence().filter { it.nodeStates().isNotEmpty() }
+        tree.nodes().asSequence().filter { it.localStates().isNotEmpty() }
                 .map { tree.solve(it, scale = 3) }
                 .onEach { println(it) }.toList()
         println()
-        assert(inserts.toLong() == tree.occupancy()) { "${tree.nodes().filter { it.nodeStates().isNotEmpty() }.count()}" }
+        assert(inserts.toLong() == tree.occupancy()) { "${tree.nodes().filter { it.localStates().isNotEmpty() }.count()}" }
     }
 
     @Test
