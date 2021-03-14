@@ -3,7 +3,7 @@ package com.noodle.physics
 import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.math.ArrayOperations.magnitude
 
-class BarnesHutTreeSolver : IBarnesHutTreeSolver<IPointMassEntity> {
+object BarnesHutTreeSolver : IBarnesHutTreeSolver<IPointMassEntity> {
     override fun solve(
             node: IBarnesHutTree<IPointMassEntity>,
             root: IBarnesHutTree<IPointMassEntity>,

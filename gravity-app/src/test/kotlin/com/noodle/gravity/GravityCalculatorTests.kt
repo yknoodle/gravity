@@ -1,15 +1,13 @@
 package com.noodle.gravity
 
-import com.noodle.math.IterableOperations.magnitude
 import com.noodle.physics.PointMassEntity
-import com.noodle.physics.BarnesHutEntityFactory
+import com.noodle.physics.PointEntityFactory
 import com.noodle.physics.IForceResult
 import com.noodle.physics.IPointMassEntity
 import com.noodle.physics.gravitation.Earth
 import com.noodle.physics.gravitation.Moon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -35,17 +33,17 @@ class GravityCalculatorTests {
     fun calculateEarthMoon(): Unit = runBlocking {
         val earthCenter: Double = 400000.0
         val entities: List<IPointMassEntity> = listOf(
-                BarnesHutEntityFactory.builder()
+                PointEntityFactory.builder()
                         .from(Earth)
                         .states(listOf(earthCenter, 0.0, 0.0)).build(),
-                BarnesHutEntityFactory.builder()
+                PointEntityFactory.builder()
                         .from(Moon)
                         .states(listOf(earthCenter + 384400.0, 0.0, 0.0)).build(),
-                BarnesHutEntityFactory.builder()
+                PointEntityFactory.builder()
                         .from(Moon)
                         .id("Moon2")
                         .states(listOf(earthCenter - 384400.0, 0.0, 0.0)).build(),
-                BarnesHutEntityFactory.builder()
+                PointEntityFactory.builder()
                         .mass(100.0)
                         .id("poop")
                         .states(listOf(earthCenter, 0.0, 0.0)).build()

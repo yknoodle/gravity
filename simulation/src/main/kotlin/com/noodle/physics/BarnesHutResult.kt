@@ -4,11 +4,14 @@ import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.physics.gravitation.Gravitation
 
 data class BarnesHutResult<T>(
-        val affectNode: IBarnesHutTree<T>,
-        val effectNode: List<IBarnesHutTree<T>> = mutableListOf(),
-        val interaction: IMassInteraction = Gravitation
-) {
-    operator fun plus(other: BarnesHutResult<T>): BarnesHutResult<T> =
-            BarnesHutResult(affectNode, effectNode + other.effectNode)
+        val affectedNode: IBarnesHutTree<T>,
+        val effectorNode: List<IBarnesHutTree<T>> = mutableListOf()
+) : IBarnesHutResult<T> {
+    override operator fun plus(other: IBarnesHutResult<T>): BarnesHutResult<T> =
+            BarnesHutResult(affectedNode, effectorNode + other.effector())
+
+    override fun effector(): List<IBarnesHutTree<T>> = effectorNode
+
+    override fun affected(): IBarnesHutTree<T> = affectedNode
 
 }

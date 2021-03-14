@@ -3,12 +3,12 @@ package com.noodle.physics
 import com.noodle.physics.gravitation.ICelestial
 import java.util.*
 
-class BarnesHutEntityFactory(
+class PointEntityFactory(
         private var _mass: Double = 1.0,
         private var _id: String = UUID.randomUUID().toString(),
         private var _states: Array<Double> = arrayOf(0.0, 0.0, 0.0)
-): IBarnesHutEntityFactory {
-    fun from(celestial: ICelestial): BarnesHutEntityFactory = this.apply {
+): IPointEntityFactory {
+    fun from(celestial: ICelestial): PointEntityFactory = this.apply {
         _mass = celestial.mass()
         _id = celestial.name()
     }
@@ -20,6 +20,6 @@ class BarnesHutEntityFactory(
             *_states.toDoubleArray(),
             _id=_id)
     companion object {
-        fun builder(): BarnesHutEntityFactory = BarnesHutEntityFactory()
+        fun builder(): PointEntityFactory = PointEntityFactory()
     }
 }

@@ -10,7 +10,7 @@ class BarnesHutTree(
         private val _capacity: Int = 1,
         private val _states: MutableList<IPointMassEntity> = mutableListOf(),
         private val _nodes: MutableList<IBarnesHutTree<IPointMassEntity>> = mutableListOf(),
-        private val _solver: IBarnesHutTreeSolver<IPointMassEntity> = BarnesHutTreeSolver()
+        private val _solver: IBarnesHutTreeSolver<IPointMassEntity> = BarnesHutTreeSolver
 ) : IBarnesHutTree<IPointMassEntity> {
     override fun insert(state: IPointMassEntity): IBarnesHutTree<IPointMassEntity>? {
         if (_states.size < _capacity && state.position() in _boundary && _nodes.isEmpty()) {

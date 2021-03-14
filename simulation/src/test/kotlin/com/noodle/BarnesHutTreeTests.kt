@@ -1,11 +1,11 @@
 package com.noodle
 
-import com.noodle.physics.BarnesHutTree
 import com.noodle.bounding.CubeSpace
-import com.noodle.physics.IPointMassEntity
 import com.noodle.datastructure.IBarnesHutTree
-import com.noodle.physics.BarnesHutEntityFactory
-import com.noodle.physics.PointMassEntity
+import com.noodle.math.IterableOperations.magnitude
+import com.noodle.physics.*
+import com.noodle.physics.gravitation.Earth
+import com.noodle.math.IterableOperations.plus
 import org.junit.Test
 import kotlin.math.pow
 import kotlin.random.Random
@@ -80,21 +80,32 @@ class BarnesHutTreeTests {
     fun canComputeHumanWeightOnEarth() {
         val resolution = 13L
         val tree = BarnesHutTree(CubeSpace(resolution))
-        val earth: IPointMassEntity = PointMassEntity(5.972e24, 0.0, 0.0, 0.0)
-        val human: IPointMassEntity = PointMassEntity(5e1, 6.317e3, 0.0, 0.0)
-        val human2: IPointMassEntity = PointMassEntity(5e1, 4.417e3, 4.4e3, 0.0)
-        tree.insert(earth)
-        tree.insert(human)
-        tree.insert(human2)
+        tree.insert(PointEntityFactory.builder()
+                .from(Earth).build())
+        tree.insert(PointEntityFactory.builder()
+                .mass(5e1).states(listOf(6.317e3, 0.0, 0.0))
+                .id("human1")
+                .build())
+        tree.insert(PointEntityFactory.builder()
+                .mass(5e1).states(listOf(4.417e3, 4.4e3, 0.0))
+                .id("human2")
+                .build())
         val nodes: List<IBarnesHutTree<IPointMassEntity>> =
                 tree.nodes().filter { it.localStates().isNotEmpty() }
         nodes.onEach { println("$it") }
-        val weight = nodes
-                .map { tree.solve(it, scale = 3) }
-//                .map { it.toTypedArray().magnitude()}
-                .onEach { println("$it") }
+        val resultMap: Map<String, IForceResult> = nodes
+                .map { BarnesHutTreeSolver.solve(it, tree) }
+                .flatMap { BarnesHutResultInterpreter.f(it) }
+                .fold(mapOf<String, IForceResult>()){ acc, cur -> acc + (cur.id() to cur)}
+                .onEach { println(it) }
         assert(nodes.isNotEmpty())
-//        assert(weight[1]> 499 && weight[1]<500)
+
+        val weight = (resultMap["human1"] ?: error("human1 not found"))
+                .components().values
+                .reduce { acc, cur -> acc plus cur }
+                .magnitude()
+        println("weight: $weight")
+        assert(weight > 499 &&  weight < 500)
     }
 
     @Test
@@ -122,11 +133,11 @@ class BarnesHutTreeTests {
     @Test
     fun canIterate() {
         val tree = BarnesHutTree(CubeSpace(3L))
-        tree.insert(BarnesHutEntityFactory.builder()
+        tree.insert(PointEntityFactory.builder()
                 .states(listOf(0.5, 0.5, 0.5))
                 .mass(20.0)
                 .build())
-        tree.insert(BarnesHutEntityFactory.builder()
+        tree.insert(PointEntityFactory.builder()
                 .states(listOf(1.5, 1.5, 1.5))
                 .build())
         tree.nodes().onEach {

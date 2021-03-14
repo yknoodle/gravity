@@ -6,5 +6,5 @@ class ForceResult(
 ) : IForceResult{
     override fun components(): MutableMap<String, List<Double>> = components
     override fun id(): String = id
-
+    override fun toString(): String = "{$id={${components()}}"
 }

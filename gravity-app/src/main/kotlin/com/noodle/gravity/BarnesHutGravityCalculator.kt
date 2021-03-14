@@ -1,4 +1,5 @@
 package com.noodle.gravity
+
 import com.noodle.bounding.CubeSpace
 import com.noodle.datastructure.IBarnesHutTree
 import com.noodle.physics.*
@@ -13,17 +14,21 @@ object BarnesHutGravityCalculator : IGravitation {
     override fun compute(
             entities: List<IPointMassEntity>,
             resolution: Long,
-            exponent: Int): Flow<IForceResult> {
+            scale: Int): Flow<IForceResult> {
         val tree: IBarnesHutTree<IPointMassEntity> = BarnesHutTree(CubeSpace(resolution))
         entities.mapNotNull { tree.insert(it) }
-        return tree.nodes().filter { it.localStates().isNotEmpty() }.asFlow().flatMapMerge { node ->
-            val barnesHutResult: BarnesHutResult<IPointMassEntity> = tree.solve(node, scale = exponent)
-            barnesHutResult.affectNode.localStates().map { affect ->
+        return tree.nodes().asFlow()
+                .filter { it.localStates().isNotEmpty() }
+                .map { BarnesHutTreeSolver.solve(it, tree) }
+                .flatMapMerge { f(it).asFlow() }
+    }
 
-                barnesHutResult.effectNode.fold(ForceResult(affect.id())) { F, effect ->
-                    val r: List<Double> = affect.position() minus effect.position()
-                    val forceComponents = effect.states()
-                            .map { it.id() to Gravitation.force(it.mass(), effect.mass(), r) }
+    fun f(barnesHutResult: IBarnesHutResult<IPointMassEntity>): List<IForceResult> =
+            barnesHutResult.affected().localStates().map { affected ->
+                barnesHutResult.effector().fold(ForceResult(affected.id())) { F, effector ->
+                    val r: List<Double> = affected.position() minus effector.position()
+                    val forceComponents = effector.states()
+                            .map { it.id() to Gravitation.force(it.mass(), effector.mass(), r) }
                             .fold(mutableMapOf<String, List<Double>>()) { acc, cur ->
                                 acc[cur.first] = cur.second
                                 acc
@@ -31,7 +36,5 @@ object BarnesHutGravityCalculator : IGravitation {
                     F.components() += forceComponents
                     F
                 }
-            }.asFlow()
-        }
-    }
+            }
 }
