@@ -1,12 +1,16 @@
 package com.noodle
 
-import com.noodle.physics.BarnesHutTree
 import com.noodle.bounding.CubeSpace
-import com.noodle.physics.IPointMassEntity
 import com.noodle.datastructure.IBarnesHutTree
-import com.noodle.physics.gravitation.Gravitation
-import com.noodle.physics.BarnesHutEntityFactory
-import com.noodle.physics.PointMassEntity
+import com.noodle.math.IterableOperations.magnitude
+import com.noodle.physics.*
+import com.noodle.physics.gravitation.Earth
+import com.noodle.math.IterableOperations.plus
+import com.noodle.physics.barneshut.BarnesHutResultInterpreter
+import com.noodle.physics.barneshut.BarnesHutTree
+import com.noodle.physics.barneshut.BarnesHutSolver
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.math.pow
 import kotlin.random.Random
@@ -78,24 +82,36 @@ class BarnesHutTreeTests {
     }
 
     @Test
-    fun canComputeHumanWeightOnEarth() {
+    fun canComputeHumanWeightOnEarth() = runBlocking {
         val resolution = 13L
         val tree = BarnesHutTree(CubeSpace(resolution))
-        val earth: IPointMassEntity = PointMassEntity(5.972e24, 0.0, 0.0, 0.0)
-        val human: IPointMassEntity = PointMassEntity(5e1, 6.317e3, 0.0, 0.0)
-        val human2: IPointMassEntity = PointMassEntity(5e1, 4.417e3, 4.4e3, 0.0)
-        tree.insert(earth)
-        tree.insert(human)
-        tree.insert(human2)
+        tree.insert(PointMassEntityFactory.builder()
+                .from(Earth).build())
+        tree.insert(PointMassEntityFactory.builder()
+                .mass(5e1).states(listOf(6.317e3, 0.0, 0.0))
+                .id("human1")
+                .build())
+        tree.insert(PointMassEntityFactory.builder()
+                .mass(5e1).states(listOf(4.417e3, 4.4e3, 0.0))
+                .id("human2")
+                .build())
         val nodes: List<IBarnesHutTree<IPointMassEntity>> =
-                tree.nodes().filter { it.nodeStates().isNotEmpty() }
+                tree.nodes().filter { it.localStates().isNotEmpty() }
         nodes.onEach { println("$it") }
-        val weight = nodes
-                .map { tree.solve(it, 3) }
-//                .map { it.toTypedArray().magnitude()}
-                .onEach { println("$it") }
+        val interpreter = BarnesHutResultInterpreter()
+        val resultMap: Map<String, IForceResult> = nodes
+                .map { BarnesHutSolver.solve(it, tree) }
+                .flatMap { interpreter.apply(it).toList() }
+                .fold(mapOf<String, IForceResult>()){ acc, cur -> acc + (cur.id() to cur)}
+                .onEach { println(it) }
         assert(nodes.isNotEmpty())
-//        assert(weight[1]> 499 && weight[1]<500)
+
+        val weight = (resultMap["human1"] ?: error("human1 not found"))
+                .components().values
+                .reduce { acc, cur -> acc plus cur }
+                .magnitude()
+        println("weight: $weight")
+        assert(weight > 499 &&  weight < 500)
     }
 
     @Test
@@ -113,20 +129,21 @@ class BarnesHutTreeTests {
                     )
             )
         }
-        tree.nodes().asSequence().filter { it.nodeStates().isNotEmpty() }
-                .map { tree.solve(it, 3) }
+        tree.nodes().asSequence().filter { it.localStates().isNotEmpty() }
+                .map { BarnesHutSolver.solve(it, tree)}
                 .onEach { println(it) }.toList()
-        println("${tree.nodes().filter { it.nodeStates().isNotEmpty() }.count()}")
+        println()
+        assert(inserts.toLong() == tree.occupancy()) { "${tree.nodes().filter { it.localStates().isNotEmpty() }.count()}" }
     }
 
     @Test
     fun canIterate() {
         val tree = BarnesHutTree(CubeSpace(3L))
-        tree.insert(BarnesHutEntityFactory.builder()
+        tree.insert(PointMassEntityFactory.builder()
                 .states(listOf(0.5, 0.5, 0.5))
                 .mass(20.0)
                 .build())
-        tree.insert(BarnesHutEntityFactory.builder()
+        tree.insert(PointMassEntityFactory.builder()
                 .states(listOf(1.5, 1.5, 1.5))
                 .build())
         tree.nodes().onEach {

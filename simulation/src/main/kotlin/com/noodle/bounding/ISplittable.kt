@@ -1,5 +1,5 @@
 package com.noodle.bounding
 
-interface ISplittable {
-    fun split(): Array<ISplittable>
+interface ISplittable<T> {
+    fun split(): List<T>
 }

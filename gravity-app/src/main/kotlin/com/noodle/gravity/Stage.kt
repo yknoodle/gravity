@@ -1,14 +1,13 @@
 package com.noodle.gravity
 
 import com.noodle.physics.IForceResult
-import com.noodle.physics.PointMassEntity
-import com.noodle.physics.gravitation.IGravitation
+import com.noodle.physics.gravitation.IForceCalculator
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 
 class Stage(
         private val _frames: Array<IFrame>,
-        private val _gravityCalculator: IGravitation
+        private val _gravityCalculator: IForceCalculator
         // use channels to supply new IFrameEntity
 ): IStage {
     override fun frames(): List<IFrame> = _frames.toList()
